@@ -41,8 +41,6 @@ def show_prediction(model, data, args):
     plt.show()
 
 
-
-
 if __name__ == '__main__':
     args = arg_def()
 
@@ -52,11 +50,40 @@ if __name__ == '__main__':
 
     data = [torch.load(f'data/sample_{i}.pt') for i in range(11)]
 
-    pred_data = RainFallData(data, list(range(3000)),input_length, output_length)
-
     loaded_checkpoint = torch.load(args.saved_checkpoint, torch.device(args.device))
     model = Model(input_length, output_length, time_range)
     model.load_state_dict(loaded_checkpoint['best_model'])
     model.to(args.device)
 
-    show_prediction(model, pred_data[30], args)
+    if not os.path.exists('images'):
+        os.makedirs('images')
+
+    for (count, station) in enumerate(data):
+        plt.plot(range(len(station)), station, label = 'Rainfall data from the station')
+
+        predictions = []
+        for i in range(len(station) - input_length - output_length):
+            inputs = station[i : i + input_length]
+            processed_inputs = moving_average(inputs).to(args.device)
+            outputs = model(processed_inputs)
+
+            current_average = processed_inputs[-1]
+
+            for j in range(1):
+                predictions.append(outputs[j].detach() * 12 - current_average * 12 + inputs[-12 + j])
+                current_average = outputs[j].detach()
+            
+            if i == len(station) - input_length - output_length - 1:
+                for j in range(1, output_length):
+                    predictions.append(outputs[j].detach() * 12 - current_average * 12 + inputs[-12 + j])
+                    current_average = outputs[j].detach()
+            
+        plt.plot(range(input_length, len(station) - 1), np.array(predictions), label = 'Predictions')
+        plt.xlabel('Months')
+        plt.ylabel('Rainfall (mm)')
+        plt.title(f'Sample {count}')
+        plt.legend()
+        plt.savefig(f'images/sample {count}')
+
+        plt.clf()
+
