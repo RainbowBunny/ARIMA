@@ -1,3 +1,6 @@
 *.xls
 *.pt
 test.py
+checkpoints
+__pycache__
+training_log.log

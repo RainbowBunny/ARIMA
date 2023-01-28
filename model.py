@@ -8,6 +8,7 @@ class Model(nn.Module):
 
         self.input_length = input_length - time_range + 1
         self.output_length = output_length
+        self.time_range = time_range
         self.Linear = nn.Linear(self.input_length, self.output_length, bias = True)
     
     def forward(self, x):

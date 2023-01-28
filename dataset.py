@@ -3,14 +3,20 @@ from torch.utils.data import Dataset, DataLoader
 
 def moving_average(data, time_range = 12):
     output = []
-    for i in range(len(data) - time_range):
+    for i in range(len(data) - time_range + 1):
         output.append(torch.mean(data[i : i + time_range]))
     
-    return torch.tensor(output)
+    return torch.tensor(output).to(torch.float32)
+
+def standardlization(data):
+    return data
+    mean = torch.mean(data)
+    std = torch.std(data)
+    return (data - mean) / std
 
 class TrainingData(Dataset):
     def __init__(self, data, indices, input_length, output_length, time_range = 12):
-        self.data = [moving_average(station_data) for station_data in data]
+        self.data = [standardlization(moving_average(station_data)) for station_data in data]
         self.list_IDs = indices
         self.input_length = input_length - time_range + 1
         self.output_length = output_length

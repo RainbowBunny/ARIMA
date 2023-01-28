@@ -7,7 +7,7 @@ import os
 def process(filename, station):
     df = pd.read_excel(filename, sheet_name=station)
     df = pd.DataFrame(df)
-    station_info = df.iloc[5 : 36, 31 : 43]
+    station_info = df.iloc[5 : 36, 31 : 43].dropna()
     tensor = torch.from_numpy(station_info.to_numpy())
     return tensor.flatten()
 
